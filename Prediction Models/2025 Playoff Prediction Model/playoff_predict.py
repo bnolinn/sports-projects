@@ -4,10 +4,7 @@ import time
 import requests
 from pybaseball import team_batting, team_pitching, team_fielding
 
-# ---------- Helpers ----------
 def nickname_from_full(name: str) -> str:
-    # Robust nickname derivation from full team name
-    # Handles two-word nicknames like Red Sox, White Sox, Blue Jays
     if not isinstance(name, str) or not name:
         return name
     parts = name.split()
@@ -18,13 +15,12 @@ def nickname_from_full(name: str) -> str:
 def clean_team_string(s: pd.Series) -> pd.Series:
     return (
         s.astype(str)
-         .str.replace('\u00a0', ' ', regex=False)  # non-breaking space
-         .str.replace(r'\s+', ' ', regex=True)     # collapse whitespace
+         .str.replace('\u00a0', ' ', regex=False) 
+         .str.replace(r'\s+', ' ', regex=True)    
          .str.strip()
     )
 
 def pyth_win_pct(rs, ra, exponent: float = 1.83) -> pd.Series:
-    # Bill James' Pythagorean expectation: RS^x / (RS^x + RA^x)
     rs = pd.to_numeric(rs, errors='coerce')
     ra = pd.to_numeric(ra, errors='coerce')
     num = rs.pow(exponent)
@@ -32,7 +28,6 @@ def pyth_win_pct(rs, ra, exponent: float = 1.83) -> pd.Series:
     return round((num / den), 3)
 
 def fetch_mlb_standings_runs(year: int, max_retries: int = 3, sleep_sec: float = 1.0) -> pd.DataFrame:
-    # MLB Stats API standings with runsScored and runsAllowed
     url = f"https://statsapi.mlb.com/api/v1/standings?leagueId=103,104&season={year}&standingsTypes=regularSeason"
     tries = 0
     while tries < max_retries:
@@ -75,7 +70,6 @@ def fetch_mlb_standings_runs(year: int, max_retries: int = 3, sleep_sec: float =
         'Win_Pct_mlb','GB_mlb','WCGB_mlb','Streak_mlb','R_mlb','RA_mlb'
     ])
 
-# Optional: Team abbreviation mapping (for readability/downstream use)
 team_to_abbrev = {
     'Arizona Diamondbacks': 'ARI', 'Atlanta Braves': 'ATL', 'Baltimore Orioles': 'BAL',
     'Boston Red Sox': 'BOS', 'Chicago Cubs': 'CHC', 'Chicago White Sox': 'CWS',
@@ -90,7 +84,6 @@ team_to_abbrev = {
     'Washington Nationals': 'WSH'
 }
 
-# ---------- Build season-by-season team data (pybaseball) ----------
 all_data = []
 years = range(2016, 2026)
 
@@ -101,7 +94,6 @@ for year in years:
         pitching = team_pitching(year).reset_index()
         fielding = team_fielding(year).reset_index()
 
-        # Remove aggregate rows if ever present, normalize Year
         for dname, d in [('batting',batting), ('pitching',pitching), ('fielding',fielding)]:
             if 'Team' in d.columns:
                 d = d[~d['Team'].astype(str).str.contains('Total|League', case=False, na=False)]
@@ -112,8 +104,6 @@ for year in years:
             if dname=='batting': batting=d
             elif dname=='pitching': pitching=d
             else: fielding=d
-
-        # Prefer robust join on teamIDfg only if present in all three
         has_id = all('teamIDfg' in d.columns for d in (batting, pitching, fielding))
 
         if has_id:
@@ -126,7 +116,6 @@ for year in years:
                 merged = merged.rename(columns={'Team_bat': 'Team'})
             merged = merged.drop(columns=['Team_pit'], errors='ignore')
         else:
-            # Default join on Team_Clean + Year using nickname
             for d in (batting, pitching, fielding):
                 if 'Team' not in d.columns:
                     raise ValueError("Expected 'Team' column for nickname fallback")
@@ -144,7 +133,6 @@ for year in years:
                 merged = merged.rename(columns={'Team_bat': 'Team'})
             merged = merged.drop(columns=['Team_pit'], errors='ignore')
 
-        # Data quality: expect ~30 teams except 2020
         if 'Team' in merged.columns:
             nteams = merged['Team'].nunique()
             if year != 2020 and nteams < 28:
@@ -161,12 +149,10 @@ for year in years:
 
 df = pd.concat(all_data, ignore_index=True)
 
-# ---------- Normalize names ----------
 df['Team_Clean'] = clean_team_string(df['Team'])
 if 'Team_Nickname' not in df.columns:
     df['Team_Nickname'] = df['Team_Clean'].apply(nickname_from_full)
 
-# ---------- Playoff labels (existing mapping) ----------
 playoff_results_names = {
     2024: {
         'Dodgers': 5, 'Yankees': 4, 'Guardians': 3, 'Mets': 3,
@@ -226,7 +212,6 @@ df = df.merge(playoff_df, on=['Year', 'Team_Clean'], how='left')
 df['playoff_outcome'] = df['playoff_outcome_assigned'].fillna(0).astype(int)
 df = df.drop(columns=['playoff_outcome_assigned'])
 
-# ---------- Fetch MLB runs/RA per season (internal-only, optional backfill) ----------
 mlb_runs_all = []
 for y in years:
     print(f"  ↪️ Fetching MLB standings (runs) for {y} ...")
@@ -249,30 +234,24 @@ else:
     for c in ['R_mlb','RA_mlb','Wins_mlb','Losses_mlb','Win_Pct_mlb']:
         df[c] = pd.Series(dtype='float64' if 'Pct' in c else 'Int64')
 
-# ---------- Backfill R/RA from MLB if missing, then compute features ----------
 if 'R' not in df.columns and 'R_mlb' in df.columns:
     df['R'] = df['R_mlb'].astype('float')
 if 'RA' not in df.columns and 'RA_mlb' in df.columns:
     df['RA'] = df['RA_mlb'].astype('float')
 
-# Compute Pythagorean winning percentage using function (exponent 2.0)
 if {'R', 'RA'}.issubset(df.columns):
     df['pythW_pct'] = pyth_win_pct(df['R'], df['RA'], exponent=1.83)
     print("  ✅ Created pythW_pct from runs and runs allowed")
 
-# Optional: run differential per game from pybaseball R/RA/G
 if {'R', 'RA', 'G'}.issubset(df.columns):
     df['run_diff_per_game'] = (df['R'] - df['RA']) / df['G']
 
-# Make sure advanced columns exist to keep modeling stable
 for col, default in [('xFIP', np.nan), ('xwOBA', np.nan), ('wRC+', np.nan), ('F_DRS', np.nan), ('F_OAA', np.nan), ('W%', np.nan)]:
     if col not in df.columns:
         df[col] = default
 
-# Also compute team abbreviations if desired for downstream use
 df['Team_Abbrev'] = df['Team_Clean'].map(team_to_abbrev)
 
-# ---------- Select final columns for modeling (exclude MLB helper cols) ----------
 modeling_columns = ['Year', 'Team', 'Team_Abbrev']
 for col in ['pythW_pct', 'xFIP', 'SIERA', 'xwOBA', 'wRC+', 'F_DRS', 'F_OAA', 'run_diff_per_game',
             'W', 'L', 'R', 'RA', 'playoff_outcome']:
@@ -280,12 +259,9 @@ for col in ['pythW_pct', 'xFIP', 'SIERA', 'xwOBA', 'wRC+', 'F_DRS', 'F_OAA', 'ru
         modeling_columns.append(col)
 
 final_df = df[modeling_columns].copy()
-# Explicitly ensure MLB helper columns are not present
 final_df = final_df.drop(columns=[c for c in ['R_mlb','RA_mlb','Wins_mlb','Losses_mlb','Win_Pct_mlb'] if c in final_df.columns], errors='ignore')
-# Drop abbrev if not desired
 final_df = final_df.drop('Team_Abbrev', axis=1, errors='ignore')
 
-# ---------- Dtypes for compact CSV ----------
 astype_map = {
     'Year': 'int16',
     'W': 'float32', 'L': 'float32', 'R': 'float32', 'RA': 'float32',
@@ -295,7 +271,39 @@ astype_map = {
 }
 final_df = final_df.astype({k:v for k,v in astype_map.items() if k in final_df.columns}, errors='ignore')
 
-# ---------- Save ----------
 filename = 'mlb_playoff_data_2016_2025.csv'
 final_df.to_csv(filename, index=False)
 print(f"\n Data saved to {filename}")
+
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+from statsmodels.miscmodels.ordinal_model import OrderedModel
+
+df = pd.read_csv("mlb_playoff_data_2016_2025.csv")
+
+train = df[df["Year"] <= 2024].copy()
+test = df[df["Year"] == 2025].copy()
+
+playoff_teams_2025 = ["Dodgers","Yankees","Blue Jays","Tigers","Mariners","Red Sox","Astros","Brewers","Phillies","Cubs","Padres","Mets"]
+test[test["Team"].isin(playoff_teams_2025)].copy()
+
+candidate_feats = ["pythW_pct","run_diff_per_game","wRC+","xwOBA","xFIP","SIERA","F_DRS","F_OAA","W","L","R","RA"]
+feat_cols = [c for c in candidate_feats if c in df.columns]
+
+X_tr = train[feat_cols].fillna(0.0)
+y_tr = train["playoff_outcome"].astype(int)
+
+mod = OrderedModel(y_tr, X_tr, distr="logit")
+res = mod.fit(method="bfgs", maxiter=200, disp=False)
+
+X_te = test[feat_cols].fillna(0.0)
+probs = res.predict(X_te, which="prob")
+
+K = probs.shape[1]
+prob_cols = [f"p{i}" for i in range(K)]
+test[prob_cols] = probs * 100
+test["pred_stage"] = probs.values.argmax(axis=1)
+
+out_cols = ["Year","Team"] + prob_cols + ["pred_stage"]
+print(test[out_cols].sort_values("p5", ascending=False))
