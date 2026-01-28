@@ -59,12 +59,6 @@ A comprehensive analysis and modeling project for the NFL's Big Data Bowl compet
 
 **Tech Stack:** Python, Jupyter Notebooks, Pandas, NumPy, Scikit-learn, Matplotlib, Seaborn
 
-**Deliverables:**
-- 8 comprehensive analysis notebooks
-- 3 specialized analysis modules (red zone, two-minute drill, coaching)
-- Decision framework and coaching translation documents
-- Sideline decision cheat sheet for real-time application
-
 ---
 
 ### Hockey Projects
