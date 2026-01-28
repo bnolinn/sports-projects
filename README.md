@@ -39,7 +39,31 @@ A sophisticated playoff prediction system using machine learning to forecast Wor
 ---
 
 ### Football Projects
-*Projects coming soon* - Planned work includes NFL playoff predictions, player advanced metrics, and game outcome modeling.
+
+#### **2026 NFL Big Data Bowl** (`Football Projects/2026 NFL Big Data Bowl/`)
+A comprehensive analysis and modeling project for the NFL's Big Data Bowl competition, focusing on strategic decision-making and situational analysis in professional football.
+
+**Key Features:**
+- Extensive exploratory data analysis (EDA) and feature engineering
+- Situational pattern analysis (two-minute drill, red zone, fourth-down decision-making)
+- Coach decision-making analysis and decision framework development
+- Multiple specialized models for route completion and receiver separation
+- Sideline decision suggestions and coaching translation guides
+
+**Key Analysis Areas:**
+- Two-minute drill strategy optimization
+- Red zone efficiency and scoring probability
+- Fourth-down decision frameworks
+- QB-WR compatibility analysis
+- Player characteristics and performance patterns
+
+**Tech Stack:** Python, Jupyter Notebooks, Pandas, NumPy, Scikit-learn, Matplotlib, Seaborn
+
+**Deliverables:**
+- 8 comprehensive analysis notebooks
+- 3 specialized analysis modules (red zone, two-minute drill, coaching)
+- Decision framework and coaching translation documents
+- Sideline decision cheat sheet for real-time application
 
 ---
 
