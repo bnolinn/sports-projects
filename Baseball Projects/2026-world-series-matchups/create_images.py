@@ -1,8 +1,3 @@
-# ---- Tweet-ready heatmaps ----
-# Paste this into a NEW cell below your model code and run it after the
-# model cells finish. It uses brew_roll and rays_roll from the model.
-# To save a chart on your phone, long-press the image and tap Save.
-
 import textwrap
 import numpy as np
 import pandas as pd
