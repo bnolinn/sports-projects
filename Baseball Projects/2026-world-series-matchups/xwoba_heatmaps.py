@@ -1,12 +1,3 @@
-# World Series 2026 preview: pitch-shape matchup model (v3)
-# Run in Google Colab. First cell:  !pip install pybaseball
-#
-# IDEA: for each pitcher and each of his pitch types, find the pitches a
-# hitter has faced that look most like it (same pitch type, same throwing hand,
-# closest velocity / spin rate / movement). Measure how the hitter did against
-# those look-alikes, then shrink that toward his overall results vs that pitch
-# type. Weight by the pitcher's pitch mix to get one expected xwOBA per matchup.
-
 import unicodedata
 import numpy as np
 import pandas as pd
@@ -15,7 +6,6 @@ from pybaseball import statcast_batter, statcast_pitcher, playerid_lookup, cache
 
 cache.enable()
 
-# ---- 1. Settings you can tweak ----
 BAT_START = "2021-03-01"    # how far back to pull hitters (longer = slower)
 PITCH_START = "2026-03-01"  # pitcher profile = this season's pitches
 END = "2026-10-19"
@@ -28,7 +18,6 @@ SHRINK_PA = 30   # strength of shrinkage toward the hitter's overall result
 # matching below still separates them by shape.
 GROUP = {"ST": "SL", "SV": "SL", "KC": "CU"}
 
-# ---- 2. Rosters ----
 RAYS_BATTERS = [
     ("Liam", "Hicks"), ("Nick", "Fortes"), ("Jonathan", "Aranda"),
     ("Richie", "Palacios"), ("Ben", "Williamson"), ("Taylor", "Walls"),
@@ -58,7 +47,6 @@ BREWERS_PITCHERS = [
 ]
 
 
-# ---- 3. Player ID lookup ----
 def strip_accents(s):
     return "".join(c for c in unicodedata.normalize("NFD", str(s))
                    if unicodedata.category(c) != "Mn").lower()
@@ -103,11 +91,9 @@ brew_b = build_ids(BREWERS_BATTERS)
 brew_p = build_ids(BREWERS_PITCHERS)
 
 
-# ---- 4. Hitters: pull career pitches, keep plate-appearance-ending pitches ----
 def prep_pa(df):
     pa = df[df["events"].notna()].copy()
     pa = pa[pa["woba_denom"].fillna(0) == 1]  # drops bunts, IBB, etc.
-    # xwOBA: Statcast estimate on balls in play, actual wOBA value on K/BB/HBP
     pa["xw"] = pa["estimated_woba_using_speedangle"].fillna(pa["woba_value"])
     pa["pt"] = pa["pitch_type"].replace(GROUP)
     return pa.dropna(subset=FEATURES + ["pt", "p_throws", "xw"])
@@ -124,8 +110,6 @@ for pid, name in {**rays_b, **brew_b}.items():
     if df is not None and not df.empty:
         bat_pa[name] = prep_pa(df)
 
-
-# ---- 5. Pitchers: build this season's pitch-shape profile ----
 def pitcher_profile(df):
     d = df.copy()
     d["pt"] = d["pitch_type"].replace(GROUP)
@@ -158,8 +142,6 @@ for pid, name in {**rays_p, **brew_p}.items():
     if p:
         profiles[name] = p
 
-
-# ---- 6. The matchup model ----
 def compute(batter_names, pitcher_names):
     rows = []
     for b in batter_names:
@@ -208,14 +190,10 @@ rays_detail = compute(rays_b.values(), brew_p.values())   # Rays hitters vs Brew
 brew_roll = rollup(brew_detail) if not brew_detail.empty else pd.DataFrame()
 rays_roll = rollup(rays_detail) if not rays_detail.empty else pd.DataFrame()
 
-
-# ---- 7. Look at one matchup in detail, e.g. show(brew_detail, "Christian Yelich", "Steven Matz") ----
 def show(detail, batter, pitcher):
     sub = detail[(detail["batter"] == batter) & (detail["pitcher"] == pitcher)]
     print(sub.drop(columns=["batter", "pitcher"]).to_string(index=False))
 
-
-# ---- 8. Charts ----
 def heatmap(roll, title):
     if roll.empty:
         print(f"No data for: {title}")
