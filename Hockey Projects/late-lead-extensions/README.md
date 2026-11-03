@@ -1,0 +1,1 @@
+# Researching NHL teams extending leads late in third periods
