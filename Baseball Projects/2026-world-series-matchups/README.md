@@ -16,10 +16,10 @@ Which hitters have historically handled the opposing team's pitching staff, and 
 ## Results
 
 ### Rays hitters vs. Brewers pitchers
-![Rays hitters vs Brewers pitchers](rays_hitters_vs_brewers.png)
+![Rays hitters vs Brewers pitchers](images/IMG_1689.png)
 
 ### Brewers hitters vs. Rays pitchers
-![Brewers hitters vs Rays pitchers](brewers_hitters_vs_rays.png)
+![Brewers hitters vs Rays pitchers](images/IMG_1688.png)
 
 ## Key Findings
 - [Best matchup: e.g., Hitter X has a .450 xwOBA vs. Pitcher Y over N PA]
