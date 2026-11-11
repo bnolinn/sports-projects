@@ -1,84 +1,48 @@
-# Sports Projects - Brady Nolin
+# Sports Analytics Projects — Brady Nolin
 
-A collection of data analysis and prediction models across multiple sports. These projects explore statistical modeling, machine learning, and sports analytics to predict outcomes, analyze team performance, and uncover insights from real-world sports data.
+Prediction models, matchup analysis, and data visualization across MLB, NFL, and NHL, built in Python with public data (Statcast, MLB Stats API, NHL data).
 
-## Overview
+## Featured projects
 
-This repository contains personal sports analytics projects that combine my passion for sports with data science and machine learning. The work focuses on building predictive models, analytical tools, and exploring advanced statistics across multiple professional sports leagues.
+| Project | Sport | What it does | Tools |
+|---|---|---|---|
+| [2026 World Series matchup model](Baseball%20Projects/2026-world-series-matchups/) | MLB | Projects every Rays–Brewers hitter-vs-pitcher matchup by finding pitches that look like each pitcher's arsenal (nearest-neighbor matching on velocity, spin, and movement) and measuring the hitter's xwOBA against them. | pandas, NumPy, matplotlib, pybaseball |
+| [2025 MLB playoff model](Baseball%20Projects/Prediction%20Models/2025%20Playoff%20Model/) | MLB | Ordered logistic regression trained on 2016–2024 playoff teams to estimate how far each 2025 playoff team goes, plus a series simulator. | pandas, statsmodels, pybaseball, MLB Stats API |
+| [2026 NFL Big Data Bowl](Football%20Projects/2026%20NFL%20Big%20Data%20Bowl/) | NFL | Situational decision-making analysis: two-minute drill, red zone, fourth downs, and receiver separation. | pandas, scikit-learn, Jupyter |
+| [NHL late-lead research](Hockey%20Projects/late-lead-extensions/) | NHL | How often a 2-goal lead with under 6 minutes left turns into a 3+ goal win once the trailing team pulls its goalie. *In progress.* | Python |
 
-## Repository Structure
+## Repository structure
 
 ```
 sports-projects/
 ├── Baseball Projects/
-├── Basketball Projects/
+│   ├── 2026-world-series-matchups/     xwOBA matchup heatmaps (script + Colab notebook)
+│   └── Prediction Models/
+│       └── 2025 Playoff Model/         data pull, model, series simulator
 ├── Football Projects/
-└── Hockey Projects/
+│   └── 2026 NFL Big Data Bowl/         linked repository (git submodule)
+├── Hockey Projects/
+│   └── late-lead-extensions/
+└── Basketball Projects/                coming soon
 ```
 
-## Projects
+## Running the code
 
-### Baseball Projects
+Each project folder has its own README with method and results. The baseball projects use [pybaseball](https://github.com/jldbc/pybaseball):
 
-#### **2025 Playoff Model** (`Baseball Projects/Prediction Models/2025 Playoff Model/`)
-A sophisticated playoff prediction system using machine learning to forecast World Series odds and playoff series outcomes.
+```
+pip install pybaseball pandas numpy matplotlib statsmodels
+```
 
-**Key Features:**
-- Ordered logistic regression model trained on historical playoff data (2016-2024)
-- Advanced metrics: wRC+, xwOBA, xFIP, SIERA, DRS, OAA
-- Real-time World Series probability calculations
-- Pythagorean expectation analysis
+The World Series notebook is set up to run in Google Colab.
 
-**Tech Stack:** Python, Pandas, NumPy, StatsModels, MLB Stats API
+## Data sources
 
----
-
-### Basketball Projects
-*Projects coming soon* - Planned work includes NBA playoff predictions, player performance analytics, and team salary cap analysis.
+- [Baseball Savant / Statcast](https://baseballsavant.mlb.com) via pybaseball
+- [FanGraphs](https://www.fangraphs.com) team stats via pybaseball
+- [MLB Stats API](https://statsapi.mlb.com)
+- [NFL Big Data Bowl](https://operations.nfl.com/gameday/analytics/big-data-bowl/) tracking data
 
 ---
 
-### Football Projects
-
-#### **2026 NFL Big Data Bowl** (`Football Projects/2026 NFL Big Data Bowl/`)
-A comprehensive analysis and modeling project for the NFL's Big Data Bowl competition, focusing on strategic decision-making and situational analysis in professional football.
-
-**Key Features:**
-- Extensive exploratory data analysis (EDA) and feature engineering
-- Situational pattern analysis (two-minute drill, red zone, fourth-down decision-making)
-- Coach decision-making analysis and decision framework development
-- Multiple specialized models for route completion and receiver separation
-- Sideline decision suggestions and coaching translation guides
-
-**Key Analysis Areas:**
-- Two-minute drill strategy optimization
-- Red zone efficiency and scoring probability
-- Fourth-down decision frameworks
-- QB-WR compatibility analysis
-- Player characteristics and performance patterns
-
-**Tech Stack:** Python, Jupyter Notebooks, Pandas, NumPy, Scikit-learn, Matplotlib, Seaborn
-
----
-
-### Hockey Projects
-*Projects coming soon* - Planned work includes NHL playoff predictions, team strength analysis, and player performance tracking.
-
-## Project Goals
-
-- Build accurate predictive models across multiple sports
-- Demonstrate proficiency in data science and machine learning
-- Apply statistical concepts to real-world sports data
-- Explore feature engineering and model validation techniques
-- Create reproducible, production-quality code
-- Showcase analytical and programming capabilities
-
-## Data Sources
-
-- **MLB Stats API:** https://statsapi.mlb.com
-- **PyBaseball:** https://github.com/jldbc/pybaseball
-- Additional sports APIs as projects expand
-
----
-
-*Feel free to reach out with feedback or collaboration opportunities!*
+Questions or feedback? Reach out on [GitHub](https://github.com/bnolinn).
